@@ -28,6 +28,22 @@ module.exports = function(grunt) {
       }
     },
 
+    // The jade task compiles all application templates into underscore.js
+    // templates using the Jade template engine. You will need to install
+    // jade globally in order to run this task.
+    //
+    // The jst task depends on these templates to exist, so if you decide to
+    // remove this, ensure jst is updated accordingly.
+    jade: {
+      compile: {
+        files: {
+          "dist/debug/templates": [
+            "app/templates/**/*.jade"
+          ]
+        }
+      }
+    },
+
     // The jst task compiles all application templates into JavaScript
     // functions with the underscore.js template function from 1.2.4.  You can
     // change the namespace and the template options, by reading this:
@@ -37,9 +53,10 @@ module.exports = function(grunt) {
     // remove this, ensure concat is updated accordingly.
     jst: {
       "dist/debug/templates.js": [
-        "app/templates/**/*.html"
+        "dist/debug/templates/**/*.html"
       ]
     },
+
 
     // The concatenate task is used here to merge the almond require/define
     // shim and the templates into the application code.  It's named
@@ -53,13 +70,26 @@ module.exports = function(grunt) {
       ]
     },
 
+    // The stylus task compiles all application stylesheets into regular css
+    // using Stylus and Nib. You will need to install stylus and nib globally.
+    //
+    // The mincss task depends on this file to exist, so if you decide to
+    // remove this, ensure concat is updated accordingly.
+    stylus: {
+      compile: {
+        files: {
+          "dist/debug/style.css": "app/stylesheets/style.styl"
+        }
+      }
+    },
+
     // This task uses the MinCSS Node.js project to take all your CSS files in
     // order and concatenate them into a single CSS file named index.css.  It
-    // also minifies all the CSS as well.  This is named index.css, because we
-    // only want to load one stylesheet in index.html.
+    // also minifies all the CSS as well.
     mincss: {
       "../public/stylesheets/style.css": [
-        "assets/css/h5bp.css"
+        "assets/css/h5bp.css",
+        "dist/debug/style.css"
       ]
     },
 
@@ -69,52 +99,6 @@ module.exports = function(grunt) {
         "dist/debug/require.js"
       ]
     },
-
-    // Running the server without specifying an action will run the defaults,
-    // port: 8000 and host: 127.0.0.1.  If you would like to change these
-    // defaults, simply add in the properties `port` and `host` respectively.
-    // Alternatively you can omit the port and host properties and the server
-    // task will instead default to process.env.PORT or process.env.HOST.
-    //
-    // Changing the defaults might look something like this:
-    //
-    // server: {
-    //   host: "127.0.0.1", port: 9001
-    //   debug: { ... can set host and port here too ...
-    //  }
-    //
-    //  To learn more about using the server task, please refer to the code
-    //  until documentation has been written.
-    // server: {
-    //   // Ensure the favicon is mapped correctly.
-    //   files: { "favicon.ico": "favicon.ico" },
-
-    //   debug: {
-    //     // Ensure the favicon is mapped correctly.
-    //     files: { "favicon.ico": "favicon.ico" },
-
-    //     // Map `server:debug` to `debug` folders.
-    //     folders: {
-    //       "app": "dist/debug",
-    //       "assets/js/libs": "dist/debug"
-    //     }
-    //   },
-
-    //   release: {
-    //     // This makes it easier for deploying, by defaulting to any IP.
-    //     host: "0.0.0.0",
-
-    //     // Ensure the favicon is mapped correctly.
-    //     files: { "favicon.ico": "favicon.ico" },
-
-    //     // Map `server:release` to `release` folders.
-    //     folders: {
-    //       "app": "dist/release",
-    //       "assets/js/libs": "dist/release",
-    //       "assets/css": "dist/release"
-    //     }
-    //   }
-    // },
 
     // This task uses James Burke's excellent r.js AMD build tool.  In the
     // future other builders may be contributed as drop-in alternatives.
@@ -151,7 +135,7 @@ module.exports = function(grunt) {
   // dist/debug/templates.js, compile all the application code into
   // dist/debug/require.js, and then concatenate the require/define shim
   // almond.js and dist/debug/templates.js into the require.js file.
-  grunt.registerTask("default", "clean lint jst requirejs concat");
+  grunt.registerTask("default", "clean lint jade jst stylus requirejs concat");
 
   // The debug task is simply an alias to default to remain consistent with
   // debug/release.
