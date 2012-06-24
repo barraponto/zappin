@@ -7,7 +7,7 @@ module.exports = function(grunt) {
 
     // The clean task ensures all files are removed from the dist/ directory so
     // that no files linger from previous builds.
-    clean: ["dist/"],
+    clean: ["dist/", "../public/"],
 
     // The lint task will run the build configuration and the application
     // JavaScript through JSHint and report any errors.  You can change the
@@ -58,14 +58,14 @@ module.exports = function(grunt) {
     // also minifies all the CSS as well.  This is named index.css, because we
     // only want to load one stylesheet in index.html.
     mincss: {
-      "dist/release/index.css": [
+      "../public/stylesheets/style.css": [
         "assets/css/h5bp.css"
       ]
     },
 
     // Takes the built require.js file and minifies it for filesize benefits.
     min: {
-      "dist/release/require.js": [
+      "../public/javascripts/require.js": [
         "dist/debug/require.js"
       ]
     },
@@ -85,36 +85,36 @@ module.exports = function(grunt) {
     //
     //  To learn more about using the server task, please refer to the code
     //  until documentation has been written.
-    server: {
-      // Ensure the favicon is mapped correctly.
-      files: { "favicon.ico": "favicon.ico" },
+    // server: {
+    //   // Ensure the favicon is mapped correctly.
+    //   files: { "favicon.ico": "favicon.ico" },
 
-      debug: {
-        // Ensure the favicon is mapped correctly.
-        files: { "favicon.ico": "favicon.ico" },
+    //   debug: {
+    //     // Ensure the favicon is mapped correctly.
+    //     files: { "favicon.ico": "favicon.ico" },
 
-        // Map `server:debug` to `debug` folders.
-        folders: {
-          "app": "dist/debug",
-          "assets/js/libs": "dist/debug"
-        }
-      },
+    //     // Map `server:debug` to `debug` folders.
+    //     folders: {
+    //       "app": "dist/debug",
+    //       "assets/js/libs": "dist/debug"
+    //     }
+    //   },
 
-      release: {
-        // This makes it easier for deploying, by defaulting to any IP.
-        host: "0.0.0.0",
+    //   release: {
+    //     // This makes it easier for deploying, by defaulting to any IP.
+    //     host: "0.0.0.0",
 
-        // Ensure the favicon is mapped correctly.
-        files: { "favicon.ico": "favicon.ico" },
+    //     // Ensure the favicon is mapped correctly.
+    //     files: { "favicon.ico": "favicon.ico" },
 
-        // Map `server:release` to `release` folders.
-        folders: {
-          "app": "dist/release",
-          "assets/js/libs": "dist/release",
-          "assets/css": "dist/release"
-        }
-      }
-    },
+    //     // Map `server:release` to `release` folders.
+    //     folders: {
+    //       "app": "dist/release",
+    //       "assets/js/libs": "dist/release",
+    //       "assets/css": "dist/release"
+    //     }
+    //   }
+    // },
 
     // This task uses James Burke's excellent r.js AMD build tool.  In the
     // future other builders may be contributed as drop-in alternatives.
