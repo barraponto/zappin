@@ -1,9 +1,15 @@
 {
-    "name": "application-name"
+    "name": "zappin"
   , "version": "0.0.1"
   , "private": true
   , "dependencies": {
       "express": "2.5.10"
-    , "ejs": ">= 0.0.1"
+  }
+  , "subdomain": "zappin"
+  , "scripts": {
+    "start": "app.js"
+  }
+  , "engines": {
+    "node": "0.6.x"
   }
 }
