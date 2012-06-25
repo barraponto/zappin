@@ -23,8 +23,8 @@ function($, _, Backbone) {
   // Configure LayoutManager with Backbone Boilerplate defaults.
   Backbone.LayoutManager.configure({
     paths: {
-      layout: "app/templates/layouts/",
-      template: "app/templates/"
+      layout: "dist/debug/templates/",
+      template: "dist/debug/templates/"
     },
 
     fetch: function(path) {
@@ -34,8 +34,8 @@ function($, _, Backbone) {
         $.ajax({ url: "/" + path, async: false }).then(function(contents) {
           JST[path] = _.template(contents);
         });
-      } 
-      
+      }
+
       return JST[path];
     }
   });
