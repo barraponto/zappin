@@ -1,9 +1,12 @@
 define([
   // Application.
-  "app"
+  "app",
+
+  // Modules
+  "modules/channel"
 ],
 
-function(app) {
+function(app, Channel) {
 
   // Defining the application router, you can attach sub routers here.
   var Router = Backbone.Router.extend({
@@ -13,6 +16,8 @@ function(app) {
 
     index: function() {
       app.useLayout('screen');
+      app.layout.setView(".controls", new Channel.Views.Dial());
+      app.layout.render();
     }
   });
 
