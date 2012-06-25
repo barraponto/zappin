@@ -315,12 +315,16 @@ var requirejs, require, define;
 
 this['JST'] = this['JST'] || {};
 
-this['JST']['dist/debug/templates/screen.html'] = function(data) { return function (obj,_) {
+this['JST']['app/templates/screen.html'] = function(data) { return function (obj,_) {
 var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<div class="controls"></div><div class="screen"></div><div class="meta"></div>');}return __p.join('');
 }(data, _)};
 
-this['JST']['dist/debug/templates/dial.html'] = function(data) { return function (obj,_) {
-var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<input type="text" placeholder="@barraponto"/>');}return __p.join('');
+this['JST']['app/templates/dial.html'] = function(data) { return function (obj,_) {
+var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<label for="dial">Sugestão: o @gobbueno2 anda em boas companhias.</label>\n<input type="text" placeholder="@seunome" name="dial"/>\n<input class="btn" type="submit" value="Zap!"/>\n');}return __p.join('');
+}(data, _)};
+
+this['JST']['app/templates/channel_meta.html'] = function(data) { return function (obj,_) {
+var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<h2>', user_name ,'</h2>\n<p>', message ,'</p>\n');}return __p.join('');
 }(data, _)};
 
 /*!
@@ -15416,8 +15420,8 @@ function($, _, Backbone) {
   // Configure LayoutManager with Backbone Boilerplate defaults.
   Backbone.LayoutManager.configure({
     paths: {
-      layout: "dist/debug/templates/",
-      template: "dist/debug/templates/"
+      layout: "app/templates/",
+      template: "app/templates/"
     },
 
     fetch: function(path) {
@@ -15488,17 +15492,36 @@ function(app) {
 
   // Default model.
   Channel.Model = Backbone.Model.extend({
-
+    fetchData: function() {
+      var model = this;
+      var twitterData = [];
+      $.ajax('/twitter/' + this.get('user_id') + '/data', {
+        success: function(data, textStatus, jqXHR) {
+          model.set('twitterData', data).set('message', 'Carregando vídeos do canal.');
+        }
+      });
+    }
   });
 
   // Default collection.
-  Channel.Collection = Backbone.Model.extend({
+  Channel.Collection = Backbone.Collection.extend({
     model: Channel.Model
+  });
+
+  Channel.Views.Meta = Backbone.View.extend({
+    initialize: function(){
+      this.model.on('change', this.render, this);
+    },
+    template: 'channel_meta',
+    serialize: function() {
+      return this.model.toJSON();
+    }
   });
 
   Channel.Views.Dial = Backbone.View.extend({
     tagName: 'form',
     template: 'dial',
+    id: 'dial',
     events: {
       'submit': 'create'
     },
@@ -15508,9 +15531,21 @@ function(app) {
       if (username[0] == '@') {
         username = username.slice(1);
       }
-      $.ajax('/channels/' + username, {
+      $.ajax('/twitter/' + username, {
         success: function(data, textStatus, jqXHR) {
-          console.log(data);
+          app.channel = new Channel.Model(data);
+          app.channel.set('message', 'Carregando conteúdo do twitter.');
+          app.layout.setView(".meta", new Channel.Views.Meta({
+            model: app.channel
+          })).render();
+          app.channel.fetchData();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          if (jqXHR.status == '404') {
+            alert('Esse usuário não existe!');
+          } else {
+            console.log(jqXHR);
+          }
         }
       });
       event.preventDefault();

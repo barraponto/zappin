@@ -20,7 +20,8 @@
       'comigo', 'contigo', 'consigo', 'conosco', 'convosco',
       'meu', 'minha', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'seu', 'sua', 'seus', 'suas',
       'nosso', 'nossa', 'nossos', 'nossas', 'vosso', 'vossa', 'vossos', 'vossas'
-    ];
+    ]
+    , auth = {'Authorization': 'OAuth oauth_consumer_key="tnUjZgRN0RUzsbROHcDcNA", oauth_nonce="d06c106bba0d0c0106a7ee84aa5c7845", oauth_signature="vn1ZndgMrNyOlFxDA79dAip1Kog%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1340647653", oauth_token="7905732-VkJk9ZnyEOB6sskxZ11oYSpshOWYO4Qdi6OCNnSsc", oauth_version="1.0"'};
 
 exports.index = function(req, res) {
   fs.readFile(__dirname + '/../web/index.html', 'utf-8', function(err, contents){
@@ -38,6 +39,9 @@ exports.twittercheck = function(req, res, next) {
   }, function(error, response, body){
     if (response.statusCode == '200') {
       var data = JSON.parse(body);
+      if (data[0].protected) {
+        res.json({ message: 'User has its tweets protected.', code: '00' })
+      }
       res.json({
         user_id: data[0].id_str,
         user_name: data[0].name,
@@ -97,45 +101,57 @@ var termextract = function (messages) {
 }
 
 exports.twitterdata = function(req, res) {
-  if (res.local('user_protected')) {
-    res.send('Vixe, usuário com conteúdo protegido.', 500);
-  } else {
-    request({
-      url: 'http://api.twitter.com/1/statuses/user_timeline.json',
-      qs: {
-        user_id: res.local('user_id'),
-        count: 200,
-        trim_user: true,
-        include_entities: true,
-        include_rts: true
-      }
-    }, function(error, response, body){
-      if (response.statusCode == '200') {
-        var messages = JSON.parse(body);
-        var lastid = messages.pop().id_str;
-        request({
-          url: 'http://api.twitter.com/1/statuses/user_timeline.json',
-          qs: {
-            user_id: res.local('user_id'),
-            count: 200,
-            trim_user: true,
-            include_entities: true,
-            include_rts: true,
-            max_id: lastid
-          }
-        }, function (error, response, body){
-          if (response.statusCode == '200') {
-            messages = messages.concat(JSON.parse(body));
-            res.json(termextract(messages));
-          } else {
-            console.log('[' + response.statusCode + ']:' + req.url);
-            res.send('Vixe', 500);
-          }
-        });
-      } else {
-        console.log('[' + response.statusCode + ']:' + req.url);
-        res.send('Vixe', 500);
-      }
-    });
-  }
+  request({
+    url: 'http://api.twitter.com/1/statuses/user_timeline.json',
+    qs: {
+      user_id: req.params.userid,
+      count: 200,
+      trim_user: true,
+      include_rts: true
+    }
+  }, function(error, response, body) {
+    if (response.statusCode == '200') {
+      var messages = JSON.parse(body);
+      var lastid = messages.pop().id_str;
+      request({
+        url: 'http://api.twitter.com/1/statuses/user_timeline.json',
+        qs: {
+          user_id: req.params.userid,
+          count: 200,
+          trim_user: true,
+          include_rts: true,
+          max_id: lastid
+        }
+      }, function (error, response, body){
+        if (response.statusCode == '200') {
+          messages = messages.concat(JSON.parse(body));
+          res.json(termextract(messages));
+        } else {
+          console.log('[' + response.statusCode + ']:' + req.url + ' Error fetching second load.');
+          res.send('Vixe', 500);
+        }
+      });
+    } else {
+      console.log('[' + response.statusCode + ']:' + req.url +' Error fetching first load.');
+      res.send('Vixe', 500);
+    }
+  });
+}
+
+exports.youtubedata = function(req, res) {
+  request({
+    url: 'https://gdata.youtube.com/feeds/api/videos',
+    qs: {
+      alt: 'json',
+      q: req.params.kw1 + req.params.kw2,
+      v: 2,
+      orderby: 'published'
+    }
+  }, function(error, response, body){
+    if (response.statusCode == '200') {
+      var data = JSON.parse(body);
+      console.log(data);
+      res.json(data)
+    }
+  });
 }
