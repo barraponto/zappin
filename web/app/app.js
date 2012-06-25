@@ -23,8 +23,8 @@ function($, _, Backbone) {
   // Configure LayoutManager with Backbone Boilerplate defaults.
   Backbone.LayoutManager.configure({
     paths: {
-      layout: "dist/debug/templates/",
-      template: "dist/debug/templates/"
+      layout: "app/templates/",
+      template: "app/templates/"
     },
 
     fetch: function(path) {
