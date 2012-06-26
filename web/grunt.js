@@ -53,7 +53,7 @@ module.exports = function(grunt) {
     // remove this, ensure concat is updated accordingly.
     jst: {
       "dist/debug/templates.js": [
-        "dist/debug/templates/**/*.html"
+        "app/templates/**/*.html"
       ]
     },
 
@@ -63,7 +63,7 @@ module.exports = function(grunt) {
     // dist/debug/require.js, because we want to only load one script file in
     // index.html.
     concat: {
-      "dist/debug/require.js": [
+      "../public/javascripts/require.js": [
         "assets/js/libs/almond.js",
         "dist/debug/templates.js",
         "dist/debug/require.js"
@@ -89,6 +89,7 @@ module.exports = function(grunt) {
     mincss: {
       "../public/stylesheets/style.css": [
         "assets/css/h5bp.css",
+        "assets/css/bootstrap.css",
         "dist/debug/style.css"
       ]
     },
@@ -126,6 +127,17 @@ module.exports = function(grunt) {
     // point the configuration to your test directory.
     jasmine: {
       all: ["test/jasmine/*.html"]
+    },
+
+    watch: {
+      scripts: {
+        files: [
+          "app/stylesheets/**/*.styl",
+          "app/**/*.js",
+          "app/templates/**/*.html"
+        ],
+        tasks: 'debug'
+      },
     }
 
   });
@@ -135,14 +147,14 @@ module.exports = function(grunt) {
   // dist/debug/templates.js, compile all the application code into
   // dist/debug/require.js, and then concatenate the require/define shim
   // almond.js and dist/debug/templates.js into the require.js file.
-  grunt.registerTask("default", "clean lint jade jst stylus requirejs concat");
+  grunt.registerTask("default", "clean lint jst requirejs concat");
 
   // The debug task is simply an alias to default to remain consistent with
   // debug/release.
-  grunt.registerTask("debug", "default");
+  grunt.registerTask("debug", "default stylus mincss");
 
   // The release task will run the debug tasks and then minify the
   // dist/debug/require.js file and CSS files.
-  grunt.registerTask("release", "default min mincss");
+  grunt.registerTask("release", "default min stylus mincss");
 
 };
