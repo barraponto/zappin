@@ -327,6 +327,10 @@ this['JST']['app/templates/channel_meta.html'] = function(data) { return functio
 var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<h2>', user_name ,'</h2>\n<p>', message ,'</p>\n');}return __p.join('');
 }(data, _)};
 
+this['JST']['app/templates/yt_embed.html'] = function(data) { return function (obj,_) {
+var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('', video_title ,'\n');}return __p.join('');
+}(data, _)};
+
 /*!
  * jQuery JavaScript Library v1.7.2
  * http://jquery.com/
@@ -15492,12 +15496,40 @@ function(app) {
 
   // Default model.
   Channel.Model = Backbone.Model.extend({
+    initialize: function() {
+      this.on('change:youtubeData', function(){
+        var ytdata = this.get('youtubeData');
+        app.layout.setView(new Channel.Views.Screen({
+          model: this
+        })).render();
+      }, this);
+    },
     fetchData: function() {
       var model = this;
       var twitterData = [];
       $.ajax('/twitter/' + this.get('user_id') + '/data', {
         success: function(data, textStatus, jqXHR) {
-          model.set('twitterData', data).set('message', 'Carregando vídeos do canal.');
+          model.set('twitterData', data).set('message', 'Carregando vídeos do canal.').fetchVideos();
+        }
+      });
+    },
+    randomTerm: function() {
+      var data = this.get('twitterData');
+      return data[Math.floor(Math.random() * data.length)].word;
+    },
+    fetchVideos: function() {
+      var model = this;
+      var data = this.get('twitterData');
+      $.ajax('/youtube/' + model.randomTerm()  + '/' + model.randomTerm() + '/data', {
+        success: function(data, textStatus, jqXHR){
+          model.set('youtubeData', data);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          if (jqXHR.status == '500') {
+            model.fetchVideos();
+          } else {
+            console.log(jqXHR);
+          }
         }
       });
     }
@@ -15506,6 +15538,15 @@ function(app) {
   // Default collection.
   Channel.Collection = Backbone.Collection.extend({
     model: Channel.Model
+  });
+
+  Channel.Views.Screen = Backbone.View.extend({
+    initialize: function(){
+    },
+    template: 'yt_embed',
+    serialize: function(){
+      return this.model.toJSON();
+    }
   });
 
   Channel.Views.Meta = Backbone.View.extend({

@@ -6,22 +6,7 @@
   var fs = require('fs')
     , request = require('request')
     , pos = require('pos')
-    , _ = require('underscore')
-    , blacklist = [
-      // Preprositions
-      'a', 'ante', 'após', 'até', 'com', 'contra', 'de', 'desde', 'em',
-      'entre', 'para', 'por', 'perante', 'segundo', 'sem', 'sob', 'sobre', 'trás',
-      'afora', 'fora', 'exceto', 'salvo', 'malgrado', 'durante', 'mediante', 'menos',
-      // Articles
-      'a', 'as', 'o', 'os', 'um', 'uns', 'uma', 'umas',
-      // Pronomes
-      'eu', 'tu', 'ele','ela', 'nós', 'vós', 'eles', 'elas',
-      'me', 'te', 'lhe', 'nos', 'vos', 'lhes',
-      'comigo', 'contigo', 'consigo', 'conosco', 'convosco',
-      'meu', 'minha', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'seu', 'sua', 'seus', 'suas',
-      'nosso', 'nossa', 'nossos', 'nossas', 'vosso', 'vossa', 'vossos', 'vossas'
-    ]
-    , auth = {'Authorization': 'OAuth oauth_consumer_key="tnUjZgRN0RUzsbROHcDcNA", oauth_nonce="d06c106bba0d0c0106a7ee84aa5c7845", oauth_signature="vn1ZndgMrNyOlFxDA79dAip1Kog%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1340647653", oauth_token="7905732-VkJk9ZnyEOB6sskxZ11oYSpshOWYO4Qdi6OCNnSsc", oauth_version="1.0"'};
+    , _ = require('underscore');
 
 exports.index = function(req, res) {
   fs.readFile(__dirname + '/../web/index.html', 'utf-8', function(err, contents){
@@ -53,16 +38,16 @@ exports.twittercheck = function(req, res, next) {
       if (data.errors) {
         data.errors.filter(function(e, i, a){
           if (e.code == 34) {
-            res.json(e, 404);
+            res.send('Eita: nenhum usuário encontrado.', 404);
           }
         });
       }
     } else {
-      console.log('[' + response.statusCode + ']:' + req.url);
-      res.send('Vixe', 500);
+      console.log('[' + response.statusCode + ']: ' + req.url);
+      res.send('Vixe: API do Twitter baleio/miguelou na busca por usuários.', 500);
     }
   });
-}
+};
 
 var termextract = function (messages) {
   var terms = {};
@@ -70,7 +55,7 @@ var termextract = function (messages) {
     var words = new pos.Lexer().lex(message.text.toLowerCase());
     words.forEach(function(word) {
       if (terms[word] === undefined) {
-        terms[word] = {word: word, count: 0}
+        terms[word] = { word: word, count: 0 };
       }
       terms[word]['count'] += 1;
     });
@@ -88,7 +73,7 @@ var termextract = function (messages) {
     return term;
   }).filter(function(term){
     // Remove user mentions, hashtags
-    if (term.word[0] === '@' || term.word[0] === '#') {
+    if (term.word[0] === '@' || term.word[0] === '#' || term.word.slice(0,4) == 'http') {
       return false;
     } else if (term.word.length < 5) {
       return false;
@@ -96,8 +81,8 @@ var termextract = function (messages) {
       return true;
     }
   }).sortBy(function(term) {
-    return term.count;
-  }).value();
+    return -term.count;
+  }).value().slice(0, 256);
 }
 
 exports.twitterdata = function(req, res) {
@@ -127,16 +112,14 @@ exports.twitterdata = function(req, res) {
           messages = messages.concat(JSON.parse(body));
           res.json(termextract(messages));
         } else {
-          console.log('[' + response.statusCode + ']:' + req.url + ' Error fetching second load.');
-          res.send('Vixe', 500);
+          res.send('Vixe: API do Twitter baleiou/miguelou na recarga de tweets.', 500);
         }
       });
     } else {
-      console.log('[' + response.statusCode + ']:' + req.url +' Error fetching first load.');
-      res.send('Vixe', 500);
+      res.send('Vixe: API do Twitter baleiou/miguelou na carga de tweets.', 500);
     }
   });
-}
+};
 
 exports.youtubedata = function(req, res) {
   request({
@@ -150,8 +133,20 @@ exports.youtubedata = function(req, res) {
   }, function(error, response, body){
     if (response.statusCode == '200') {
       var data = JSON.parse(body);
-      console.log(data);
-      res.json(data)
+      if (data.feed.entry) {
+        res.json(data.feed.entry.map(function(entry){
+          var media = entry['media$group'];
+          console.log(media);
+          return {
+            video_id: media['yt$videoid']['$t'],
+            video_title: media['media$title']['$t'],
+            video_length: media['yt$duration']['seconds'],
+            video_des: media['media$description']['$t']
+          };
+        }));
+      } else {
+        res.send('Vixe: problemas com acentuação. (eu acho)', 500);
+      }
     }
   });
-}
+};
