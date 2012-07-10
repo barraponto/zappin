@@ -136,7 +136,6 @@ exports.youtubedata = function(req, res) {
       if (data.feed.entry) {
         res.json(data.feed.entry.map(function(entry){
           var media = entry['media$group'];
-          console.log(media);
           return {
             video_id: media['yt$videoid']['$t'],
             video_title: media['media$title']['$t'],
@@ -145,6 +144,7 @@ exports.youtubedata = function(req, res) {
           };
         }));
       } else {
+        console.log(error);
         res.send('Vixe: problemas com acentuação. (eu acho)', 500);
       }
     }

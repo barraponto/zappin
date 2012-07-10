@@ -328,7 +328,7 @@ var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.pu
 }(data, _)};
 
 this['JST']['app/templates/yt_embed.html'] = function(data) { return function (obj,_) {
-var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('', video_title ,'\n');}return __p.join('');
+var __p=[],print=function(){__p.push.apply(__p,arguments);};with(obj||{}){__p.push('<div id="zappinchannel"></div>\n<p>', video_title ,'</p>\n');}return __p.join('');
 }(data, _)};
 
 /*!
@@ -15498,9 +15498,8 @@ function(app) {
   Channel.Model = Backbone.Model.extend({
     initialize: function() {
       this.on('change:youtubeData', function(){
-        var ytdata = this.get('youtubeData');
         app.layout.setView(new Channel.Views.Screen({
-          model: this
+          video: this.randomVideo()
         })).render();
       }, this);
     },
@@ -15512,6 +15511,10 @@ function(app) {
           model.set('twitterData', data).set('message', 'Carregando vídeos do canal.').fetchVideos();
         }
       });
+    },
+    randomVideo: function() {
+      var data = this.get('youtubeData');
+      return data[Math.floor(Math.random() * data.length)];
     },
     randomTerm: function() {
       var data = this.get('twitterData');
@@ -15541,11 +15544,9 @@ function(app) {
   });
 
   Channel.Views.Screen = Backbone.View.extend({
-    initialize: function(){
-    },
     template: 'yt_embed',
-    serialize: function(){
-      return this.model.toJSON();
+    serialize: function() {
+      return this.options.video;
     }
   });
 
