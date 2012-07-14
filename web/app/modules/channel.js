@@ -17,15 +17,19 @@ function(app) {
         model: model
       })).render();
       this.fetchData();
-      this.on('change:youtubeData', function(){
-        console.log('more videos loaded');
-      }, this);
+      this.on('change:youtubeData', this.playChannel, this);
+    },
+    playChannel: function() {
+      var player = this.get('player'),
+          video = this.randomVideo();
+      player.loadVideoById(video.video_id);
     },
     setScreen: function() {
       app.layout.setView(".screen", new Channel.Views.Screen({
       })).render();
       swfobject.embedSWF('http://www.youtube.com/apiplayer?enablejsapi=1&version=3',
       "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "channel-screen" });
+      this.set('player', document.getElementById('channel-screen'));
     },
     fetchData: function() {
       var model = this;
@@ -48,9 +52,8 @@ function(app) {
       var data = this.get('twitterData');
       return data[Math.floor(Math.random() * data.length)].word;
     },
-    fetchVideos: function(m) {
-      var model = ('undefined' === typeof m) ? this : m;
-      var data = model.get('twitterData');
+   fetchVideos: function() {
+      var model = this;
       $.ajax('/youtube/' + model.randomTerm()  + '/' + model.randomTerm() + '/data', {
         success: function(data, textStatus, jqXHR){
           var previous = ('undefined' === typeof model.get('youtubeData')) ? [] : model.get('youtubeData');
