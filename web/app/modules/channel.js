@@ -16,18 +16,16 @@ function(app) {
       app.layout.setView(".meta", new Channel.Views.Meta({
         model: model
       })).render();
-      console.log(this);
       this.fetchData();
-      // this.on('change:youtubeData', function(){
-      //   var video = this.randomVideo();
-      // }, this);
+      this.on('change:youtubeData', function(){
+        console.log('more videos loaded');
+      }, this);
     },
     setScreen: function() {
       app.layout.setView(".screen", new Channel.Views.Screen({
       })).render();
-      var screenID = swfobject.embedSWF('http://www.youtube.com/apiplayer?enablejsapi=1&version=3',
+      swfobject.embedSWF('http://www.youtube.com/apiplayer?enablejsapi=1&version=3',
       "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "channel-screen" });
-      this.set('screenID', screenID);
     },
     fetchData: function() {
       var model = this;
@@ -55,8 +53,11 @@ function(app) {
       var data = model.get('twitterData');
       $.ajax('/youtube/' + model.randomTerm()  + '/' + model.randomTerm() + '/data', {
         success: function(data, textStatus, jqXHR){
-          model.set('youtubeData', $.merge(model.get('youtubeData'), data));
-          // model.set('intervalID', window.setInterval(model.fetchVideos(model), 15000));
+          var previous = ('undefined' === typeof model.get('youtubeData')) ? [] : model.get('youtubeData');
+          model.set('youtubeData', $.merge(previous, data));
+          if (model.get('youtubeData').length < 240) {
+            model.fetchVideos();
+          }
         },
         error: function(jqXHR, textStatus, errorThrown) {
           if (jqXHR.status == '500') {

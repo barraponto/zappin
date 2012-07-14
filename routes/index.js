@@ -146,7 +146,7 @@ exports.youtubedata = function(req, res) {
             video_length: media['yt$duration']['seconds'],
             video_des: media['media$description']['$t']
           };
-        }));
+        }).slice(0, 4));
       } else {
         console.log(error);
         res.send('Vixe: problemas com acentuação (ou nenhum resultado).', 500);
