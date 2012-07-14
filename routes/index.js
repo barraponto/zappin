@@ -149,7 +149,7 @@ exports.youtubedata = function(req, res) {
         }));
       } else {
         console.log(error);
-        res.send('Vixe: problemas com acentuação. (eu acho)', 500);
+        res.send('Vixe: problemas com acentuação (ou nenhum resultado).', 500);
       }
     }
   });
