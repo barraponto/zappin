@@ -66,7 +66,8 @@ module.exports = function(grunt) {
       "../public/javascripts/require.js": [
         "assets/js/libs/almond.js",
         "dist/debug/templates.js",
-        "dist/debug/require.js"
+        "dist/debug/require.js",
+        "assets/js/libs/swfobject.js"
       ]
     },
 
