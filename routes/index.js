@@ -97,24 +97,28 @@ exports.twitterdata = function(req, res) {
   }, function(error, response, body) {
     if (response.statusCode == '200') {
       var messages = JSON.parse(body);
-      var lastid = messages.pop().id_str;
-      request({
-        url: 'http://api.twitter.com/1/statuses/user_timeline.json',
-        qs: {
-          user_id: req.params.userid,
-          count: 200,
-          trim_user: true,
-          include_rts: true,
-          max_id: lastid
-        }
-      }, function (error, response, body){
-        if (response.statusCode == '200') {
-          messages = messages.concat(JSON.parse(body));
-          res.json(termextract(messages));
-        } else {
-          res.send('Vixe: API do Twitter baleiou/miguelou na recarga de tweets.', 500);
-        }
-      });
+      if (messages.length > 0) {
+        var lastid = messages.pop().id_str;
+        request({
+          url: 'http://api.twitter.com/1/statuses/user_timeline.json',
+          qs: {
+            user_id: req.params.userid,
+            count: 200,
+            trim_user: true,
+            include_rts: true,
+            max_id: lastid
+          }
+        }, function (error, response, body){
+          if (response.statusCode == '200') {
+            messages = messages.concat(JSON.parse(body));
+            res.json(termextract(messages));
+          } else {
+            res.send('Vixe: API do Twitter baleiou/miguelou na recarga de tweets.', 500);
+          }
+        });
+      } else {
+        res.send('Vixe: usuário não tem mensagens :P', 404);
+      }
     } else {
       res.send('Vixe: API do Twitter baleiou/miguelou na carga de tweets.', 500);
     }
