@@ -55,7 +55,7 @@ function(app) {
       var data = model.get('twitterData');
       $.ajax('/youtube/' + model.randomTerm()  + '/' + model.randomTerm() + '/data', {
         success: function(data, textStatus, jqXHR){
-          model.set('youtubeData', data);
+          model.set('youtubeData', $.merge(model.get('youtubeData'), data));
           // model.set('intervalID', window.setInterval(model.fetchVideos(model), 15000));
         },
         error: function(jqXHR, textStatus, errorThrown) {
