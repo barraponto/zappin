@@ -13,9 +13,12 @@ function(app) {
   Channel.Model = Backbone.Model.extend({
     initialize: function() {
       this.on('change:youtubeData', function(){
-        app.layout.setView(new Channel.Views.Screen({
-          video: this.randomVideo()
+        var video = this.randomVideo();
+        app.layout.setView(".screen", new Channel.Views.Screen({
+          video: video
         })).render();
+        swfobject.embedSWF('http://www.youtube.com/v/' + video.video_id + '?enablejsapi=1&playerapiid=ytplayer&version=3',
+        "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "video-" + video.video_id });
       }, this);
     },
     fetchData: function() {
