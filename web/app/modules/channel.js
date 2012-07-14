@@ -12,21 +12,33 @@ function(app) {
   // Default model.
   Channel.Model = Backbone.Model.extend({
     initialize: function() {
-      this.on('change:youtubeData', function(){
-        var video = this.randomVideo();
-        app.layout.setView(".screen", new Channel.Views.Screen({
-          video: video
-        })).render();
-        swfobject.embedSWF('http://www.youtube.com/v/' + video.video_id + '?enablejsapi=1&playerapiid=ytplayer&version=3',
-        "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "video-" + video.video_id });
-      }, this);
+      var model = this;
+      app.layout.setView(".meta", new Channel.Views.Meta({
+        model: model
+      })).render();
+      console.log(this);
+      this.fetchData();
+      // this.on('change:youtubeData', function(){
+      //   var video = this.randomVideo();
+      // }, this);
+    },
+    setScreen: function() {
+      app.layout.setView(".screen", new Channel.Views.Screen({
+      })).render();
+      var screenID = swfobject.embedSWF('http://www.youtube.com/apiplayer?enablejsapi=1&version=3',
+      "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "channel-screen" });
+      this.set('screenID', screenID);
     },
     fetchData: function() {
       var model = this;
       var twitterData = [];
       $.ajax('/twitter/' + this.get('user_id') + '/data', {
-        success: function(data, textStatus, jqXHR) {
+        success: function(data, textStatus, jqXHR){
           model.set('twitterData', data).set('message', 'Carregando vídeos do canal.').fetchVideos();
+          model.setScreen();
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+          model.set('message', 'Usuário não tem nenhuma mensagem. Que droga.');
         }
       });
     },
@@ -38,12 +50,13 @@ function(app) {
       var data = this.get('twitterData');
       return data[Math.floor(Math.random() * data.length)].word;
     },
-    fetchVideos: function() {
-      var model = this;
-      var data = this.get('twitterData');
+    fetchVideos: function(m) {
+      var model = ('undefined' === typeof m) ? this : m;
+      var data = model.get('twitterData');
       $.ajax('/youtube/' + model.randomTerm()  + '/' + model.randomTerm() + '/data', {
         success: function(data, textStatus, jqXHR){
           model.set('youtubeData', data);
+          // model.set('intervalID', window.setInterval(model.fetchVideos(model), 15000));
         },
         error: function(jqXHR, textStatus, errorThrown) {
           if (jqXHR.status == '500') {
@@ -86,6 +99,7 @@ function(app) {
       'submit': 'create'
     },
     create: function(event) {
+      event.preventDefault();
       var username = this.$('input').val();
       // remove the @, hehe.
       if (username[0] == '@') {
@@ -93,12 +107,8 @@ function(app) {
       }
       $.ajax('/twitter/' + username, {
         success: function(data, textStatus, jqXHR) {
+          data.message = 'Carregando conteúdo do twitter.';
           app.channel = new Channel.Model(data);
-          app.channel.set('message', 'Carregando conteúdo do twitter.');
-          app.layout.setView(".meta", new Channel.Views.Meta({
-            model: app.channel
-          })).render();
-          app.channel.fetchData();
         },
         error: function(jqXHR, textStatus, errorThrown) {
           if (jqXHR.status == '404') {
@@ -108,7 +118,6 @@ function(app) {
           }
         }
       });
-      event.preventDefault();
     }
   });
 
