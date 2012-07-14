@@ -21,14 +21,19 @@ function(app) {
     },
     playChannel: function() {
       var player = this.get('player'),
-          video = this.randomVideo();
-      player.loadVideoById(video.video_id);
+          model = this;
+      this.set('intervalId', window.setInterval(function(){
+        var vid = model.randomVideo().video_id;
+        console.log(vid);
+        player.loadVideoById(vid);
+      }, 20000));
     },
     setScreen: function() {
       app.layout.setView(".screen", new Channel.Views.Screen({
       })).render();
       swfobject.embedSWF('http://www.youtube.com/apiplayer?enablejsapi=1&version=3',
-      "zappinchannel", "300", "225", "8", null, null, { allowScriptAccess: "always" }, { id: "channel-screen" });
+      "zappinchannel", "300", "225", "8", null, null,
+      { allowScriptAccess: "always" }, { id: "channel-screen" });
       this.set('player', document.getElementById('channel-screen'));
     },
     fetchData: function() {
