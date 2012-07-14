@@ -15507,6 +15507,7 @@ function(app) {
     playChannel: function() {
       var player = this.get('player'),
           model = this;
+      player.loadVideoById(model.randomVideo().video_id);
       this.set('intervalId', window.setInterval(function(){
         var vid = model.randomVideo().video_id;
         console.log(vid);
